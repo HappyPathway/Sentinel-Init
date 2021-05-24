@@ -1,0 +1,3 @@
+module "policies" {
+    source = "./tfmod"
+}
