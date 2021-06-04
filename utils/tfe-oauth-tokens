@@ -1,0 +1,52 @@
+#!/usr/local/opt/python/bin/python3.7
+from __future__ import print_function
+import requests
+import os
+import json
+import sys
+import hcl
+
+def hcl_config(api, config):
+    with open(os.path.abspath(config), 'r') as fp:
+        obj = hcl.load(fp)
+    return obj.get('credentials').get(api).get('token')
+
+def main(opt, args):
+    # stdin_json = json.loads(sys.stdin.read())
+    try:
+        org = args.pop()
+    except:
+        print("Not enough arguments. Please provide TFE OrgName")
+    atlas_token = hcl_config(opt.api, opt.config)
+
+    headers = {"Authorization": "Bearer {0}".format(atlas_token)}
+ 
+    try:
+        resp = requests.get("https://{0}/api/v2/organizations/{1}/oauth-tokens".format(opt.api, org), headers=headers)
+        data = resp.json()
+    except UnboundLocalError:
+        sys.stderr.write("Please specify TFE Organization\n")
+        sys.exit(1)
+
+    try:
+        print(data.get("data")[0].get("id"))
+    except:
+        print("Could not find Token. Have you connected your VCS?")
+        print("Please go to: https://app.terraform.io/app/{0}/settings/version-control".format(org))
+        if "y" in raw_input("Open Browser? "):
+            os.system("open https://app.terraform.io/app/{0}/settings/version-control".format(org))
+            
+if __name__ == '__main__':
+    from optparse import OptionParser
+    parser = OptionParser()
+    parser.add_option('--config', default=os.path.expanduser("~/.terraformrc"))
+    parser.add_option('--api', default="app.terraform.io")
+    opt, args = parser.parse_args()
+
+    if not os.path.isfile(opt.config):
+        sys.stderr.write("This script requires having a valid ~/.terraformrc file.\n")
+        sys.stderr.write("https://www.terraform.io/docs/commands/cli-config.html#configuration-file-syntax\n")
+        sys.exit(1)
+
+    main(opt, args)
+
