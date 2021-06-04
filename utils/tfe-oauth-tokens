@@ -32,9 +32,9 @@ def main(opt, args):
         print(data.get("data")[0].get("id"))
     except:
         print("Could not find Token. Have you connected your VCS?")
-        print("Please go to: https://app.terraform.io/app/{0}/settings/version-control".format(org))
+        print("Please go to: https://{0}/app/{1}/settings/version-control".format(opt.api, org))
         if "y" in raw_input("Open Browser? "):
-            os.system("open https://app.terraform.io/app/{0}/settings/version-control".format(org))
+            os.system("open https://{0}/app/{1}/settings/version-control".format(opt.api, org))
             
 if __name__ == '__main__':
     from optparse import OptionParser
